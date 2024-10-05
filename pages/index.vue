@@ -1,20 +1,20 @@
 <template>
-    <div class="mode">
+    <div class="dark:bg-black">
         <div class="d-flex align-items-center justify-content-center" style="min-height: 100vh;">
             <div class="container-md">
                 <!-- Title -->
-                <div class="row">
+                <div class="row mt-3">
                     <div class="col-1"></div>
-                    <div class="col-10 text-center">
+                    <div class="col-10 text-center dark:text-white">
                         <span class="title">{{ title }}</span>
                     </div>
                     <div class="col-1"></div>
                 </div>
 
-                <hr>
+                <hr class="dark:border-white">
 
                 <!-- Measurements -->
-                <div class="row justify-content-center">
+                <div class="row justify-content-center dark:text-white">
                     <MeasItem v-if="tempLoaded" name="Temperature" :value="latestTemperature" unit=" °C" />
                     <MeasItem v-if="humLoaded" name="Humidity" :value="latestHumidity" unit=" %" />
                     <MeasItem v-if="pressureLoaded" name="Pressure" :value="latestPressure" unit=" hPa" />
@@ -23,23 +23,23 @@
                     <MeasItem v-if="altitudeLoaded" name="Altitude" :value="latestAltitude" unit=" m" />
                 </div>
                 
-                <hr>
+                <hr class="dark:border-white">
                 
                 <!-- Charts -->
                 <div class="row">
-                    <LineChart v-if="tempLoaded" :chartId="tempChartId" :chartData="tempChartData" />
-                    <LineChart v-if="humLoaded" :chartId="humChartId" :chartData="humChartData" />
-                    <LineChart v-if="pressureLoaded" :chartId="pressureChartId" :chartData="pressureChartData" />
-                    <LineChart v-if="lumLoaded" :chartId="lumChartId" :chartData="lumChartData" />
-                    <LineChart v-if="uvLoaded" :chartId="uvChartId" :chartData="uvChartData" />
-                    <LineChart v-if="altitudeLoaded" :chartId="altitudeChartId" :chartData="altitudeChartData" />
+                    <LineChart v-if="tempLoaded" :chartId="tempChartId" :chartData="tempChartData" :chartOptions="chartOptions"/>
+                    <LineChart v-if="humLoaded" :chartId="humChartId" :chartData="humChartData" :chartOptions="chartOptions" />
+                    <LineChart v-if="pressureLoaded" :chartId="pressureChartId" :chartData="pressureChartData" :chartOptions="chartOptions" />
+                    <LineChart v-if="lumLoaded" :chartId="lumChartId" :chartData="lumChartData" :chartOptions="chartOptions" />
+                    <LineChart v-if="uvLoaded" :chartId="uvChartId" :chartData="uvChartData" :chartOptions="chartOptions" />
+                    <LineChart v-if="altitudeLoaded" :chartId="altitudeChartId" :chartData="altitudeChartData" :chartOptions="chartOptions" />
                 </div>
 
-                <hr>
+                <hr class="dark:border-white">
 
                 <!-- Buttons -->
                 <div class="d-grid my-3">
-                    <button type="button" class="btn" @click="togglePersonState" style="background-color: #006dae;">
+                    <button type="button" class="btn btn-color" @click="togglePersonState">
                         <span style="color: #ffffff;">{{ personState }}</span>
                     </button>
                 </div>
@@ -51,7 +51,7 @@
 <script setup>
 const title = 'A. I. M. Z. Goggles';
 const personState = ref('Working . . .');
-const mode = ref('#ffffff');
+const btnColor = ref('#1b1b1b');
 
 const latestTemperature = ref(0);
 const latestHumidity = ref(0);
@@ -83,6 +83,22 @@ const lumLoaded = ref(false);
 const altitudeChartData = ref({});
 const altitudeChartId = ref('');
 const altitudeLoaded = ref(false);
+
+const chartOptions = ref({
+    responsive: true,
+    // scales: {
+    //     x: {
+    //         grid: {
+    //             color: 'white',
+    //         }
+    //     },
+    //     y: {
+    //         grid: {
+    //             color: 'white',
+    //         }
+    //     }
+    // }
+});
 
 const supaClient = useSupabaseClient();
 
@@ -161,6 +177,7 @@ const { data: temtData, refresh: refreshTEMT } = queryRealtimeChange(
 
 onMounted(() => {
     dbChannel.subscribe();
+    useColorMode().preference = 'light';
 });
 onUnmounted(() => {
     dbChannel.unsubscribe()
@@ -183,7 +200,8 @@ const updateLatestAndChart = (data, latest, chartData, chartId, loaded, param, l
             {
                 data: data.map((item) => item[param]),
                 label: label,
-                backgroundColor: '#f87979'
+                backgroundColor: '#1DB954',
+                borderColor: '#1DB954',
             }
         ]
     };
@@ -259,33 +277,49 @@ watch(temtData, (newValue, oldValue) => {
 })
 
 const togglePersonState = () => {
-    if (personState.value === 'Working . . .') {
-        personState.value = 'Resting . . .';
-        mode.value = 'grey';
-    } else {
-        personState.value = 'Working . . .';
-        mode.value = '#ffffff';
-    }
+    personState.value = personState.value === 'Resting . . .' ? 'Working . . .' : 'Resting . . .';
+    btnColor.value = personState.value === 'Resting . . .' ? '#1DB954' : '#1b1b1b';
+    chartOptions.value = personState.value === 'Resting . . .' ? {
+        responsive: true,
+        scales: {
+            x: {
+                grid: {
+                    color: '#808080',
+                }
+            },
+            y: {
+                grid: {
+                    color: '#808080',
+                }
+            }
+        }
+    } : {
+        responsive: true,
+        scales: {
+            x: {
+                grid: {
+                    color: '#cecece',
+                }
+            },
+            y: {
+                grid: {
+                    color: '#cecece',
+                }
+            }
+        }
+    };
+    setColourTheme(personState.value === 'Resting . . .' ? 'dark' : 'light');
 }
-</script>
-
-<script>
-import Swal from 'sweetalert2';
-import {
-    doc,
-    onSnapshot
-} from 'firebase/firestore';
-// import BarChart from '~/components/BarChart.vue';
-// import LineChart from '~/components/LineChart.vue';
-
+const setColourTheme = (newTheme) => {
+    useColorMode().preference = newTheme;
+}
 </script>
 
 <style lang="css" scoped>
 .title {
     font-size: 32px;
-    color: #000000;
 }
-/* .mode {
-    background-color: v-bind(mode);
-} */
+.btn-color {
+    background-color: v-bind(btnColor);
+}
 </style>

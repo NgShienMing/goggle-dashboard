@@ -14,7 +14,8 @@ import {
     LineElement,
     PointElement,
     CategoryScale, 
-    LinearScale 
+    LinearScale, 
+    scales
 } from 'chart.js'
 
 ChartJS.register(
@@ -39,10 +40,8 @@ const props = defineProps({
     chartOptions: {
         type: Object,
         default: {
-            responsive: true
+            responsive: true,
         }
     }
 })
-
-// const components = defineComponent([Line])
 </script>

@@ -1,11 +1,11 @@
 <template>
-    <div class="col-sm-4 col-6">
+    <div class="col-md-4 col-sm-6 col-12">
         <div class="row">
-            <div class="col-1 param text-start"></div>
-            <div class="col-4 param text-start">{{ name }}</div>
-            <div class="col-3 param text-end">{{ value }}</div>
-            <div class="col-2 param text-start">{{ unit }}</div>
-            <div class="col-1 param text-end"></div>
+            <div class="col-md-1 col-1 param text-start"></div>
+            <div class="col-md-4 col-3 param text-start">{{ name }}</div>
+            <div class="col-md-3 col-4 param text-end">{{ value }}</div>
+            <div class="col-sm-3 col-3 param text-end">{{ unit }}</div>
+            <div class="col-md-1 col-1 param text-end"></div>
         </div>
     </div>
 </template>
