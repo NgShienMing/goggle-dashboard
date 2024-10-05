@@ -1,32 +1,34 @@
 <template>
     <div class="dark:bg-black">
         <div class="d-flex align-items-center justify-content-center" style="min-height: 100vh;">
-            <div class="container-md">
-                <!-- Title -->
-                <div class="row mt-3">
-                    <div class="col-1"></div>
-                    <div class="col-10 text-center dark:text-white">
-                        <span class="title">{{ title }}</span>
+            <div class="container">
+                <div :class="{ 'dark-active': isDark, 'dark-inactive': !isDark }" class="sticky-top">
+                    <!-- Title -->
+                    <div class="row mt-3">
+                        <div class="col-1"></div>
+                        <div class="col-10 text-center dark:text-white">
+                            <span class="title">{{ title }}</span>
+                        </div>
+                        <div class="col-1"></div>
                     </div>
-                    <div class="col-1"></div>
-                </div>
 
-                <hr class="dark:border-white">
+                    <hr class="dark:border-white">
 
-                <!-- Measurements -->
-                <div class="row justify-content-center dark:text-white">
-                    <MeasItem v-if="tempLoaded" name="Temperature" :value="latestTemperature" unit=" °C" />
-                    <MeasItem v-if="humLoaded" name="Humidity" :value="latestHumidity" unit=" %" />
-                    <MeasItem v-if="pressureLoaded" name="Pressure" :value="latestPressure" unit=" hPa" />
-                    <MeasItem v-if="lumLoaded" name="Luminance" :value="latestLuminance" unit=" lux" />
-                    <MeasItem v-if="uvLoaded" name="UV" :value="latestUV" unit=" mW/cm²" />
-                    <MeasItem v-if="altitudeLoaded" name="Altitude" :value="latestAltitude" unit=" m" />
+                    <!-- Measurements -->
+                    <div class="row justify-content-center dark:text-white">
+                        <MeasItem v-if="tempLoaded" name="Temperature" :value="latestTemperature" unit=" °C" />
+                        <MeasItem v-if="humLoaded" name="Humidity" :value="latestHumidity" unit=" %" />
+                        <MeasItem v-if="pressureLoaded" name="Pressure" :value="latestPressure" unit=" hPa" />
+                        <MeasItem v-if="lumLoaded" name="Luminance" :value="latestLuminance" unit=" lux" />
+                        <MeasItem v-if="uvLoaded" name="UV" :value="latestUV" unit=" mW/cm²" />
+                        <MeasItem v-if="altitudeLoaded" name="Altitude" :value="latestAltitude" unit=" m" />
+                    </div>
+                    <hr class="dark:border-white">
                 </div>
                 
-                <hr class="dark:border-white">
                 
                 <!-- Charts -->
-                <div class="row">
+                <div class="row justify-content-center">
                     <LineChart v-if="tempLoaded" :chartId="tempChartId" :chartData="tempChartData" :chartOptions="chartOptions"/>
                     <LineChart v-if="humLoaded" :chartId="humChartId" :chartData="humChartData" :chartOptions="chartOptions" />
                     <LineChart v-if="pressureLoaded" :chartId="pressureChartId" :chartData="pressureChartData" :chartOptions="chartOptions" />
@@ -35,14 +37,16 @@
                     <LineChart v-if="altitudeLoaded" :chartId="altitudeChartId" :chartData="altitudeChartData" :chartOptions="chartOptions" />
                 </div>
 
-                <hr class="dark:border-white">
-
+                
                 <!-- Buttons -->
-                <div class="d-grid my-3">
+                <div :class="{ 'dark-active': isDark, 'dark-inactive': !isDark }" class="sticky-bottom">
+                    <hr class="dark:border-white">
                     <button type="button" class="btn btn-color" @click="togglePersonState">
                         <span style="color: #ffffff;">{{ personState }}</span>
                     </button>
                 </div>
+                <!-- <div style="min-height: 1vh;">
+                </div> -->
             </div>
         </div>
     </div>
@@ -52,6 +56,7 @@
 const title = 'A. I. M. Z. Goggles';
 const personState = ref('Working . . .');
 const btnColor = ref('#1b1b1b');
+const isDark = ref(false);
 
 const latestTemperature = ref(0);
 const latestHumidity = ref(0);
@@ -86,18 +91,6 @@ const altitudeLoaded = ref(false);
 
 const chartOptions = ref({
     responsive: true,
-    // scales: {
-    //     x: {
-    //         grid: {
-    //             color: 'white',
-    //         }
-    //     },
-    //     y: {
-    //         grid: {
-    //             color: 'white',
-    //         }
-    //     }
-    // }
 });
 
 const supaClient = useSupabaseClient();
@@ -278,7 +271,7 @@ watch(temtData, (newValue, oldValue) => {
 
 const togglePersonState = () => {
     personState.value = personState.value === 'Resting . . .' ? 'Working . . .' : 'Resting . . .';
-    btnColor.value = personState.value === 'Resting . . .' ? '#1DB954' : '#1b1b1b';
+    btnColor.value = personState.value === 'Resting . . .' ? '#1DB954' : '#1B1B1B';
     chartOptions.value = personState.value === 'Resting . . .' ? {
         responsive: true,
         scales: {
@@ -298,16 +291,18 @@ const togglePersonState = () => {
         scales: {
             x: {
                 grid: {
-                    color: '#cecece',
+                    color: '#CECECE',
                 }
             },
             y: {
                 grid: {
-                    color: '#cecece',
+                    color: '#CECECE',
                 }
             }
         }
     };
+    isDark.value = personState.value === 'Resting . . .';
+    console.log(isDark.value);
     setColourTheme(personState.value === 'Resting . . .' ? 'dark' : 'light');
 }
 const setColourTheme = (newTheme) => {
@@ -321,5 +316,12 @@ const setColourTheme = (newTheme) => {
 }
 .btn-color {
     background-color: v-bind(btnColor);
+    width: 100%;
+}
+.dark-active {
+    background-color: #000000;
+}
+.dark-inactive {
+    background-color: #FFFFFF;
 }
 </style>

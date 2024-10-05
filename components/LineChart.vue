@@ -1,5 +1,5 @@
 <template>
-    <div class="col-md-4 col-sm-6 col-12">
+    <div class="col-lg-4 col-sm-6 col-12">
         <Line :id="chartId" :data="chartData" :options="chartOptions" />
     </div>
 </template>
@@ -15,7 +15,6 @@ import {
     PointElement,
     CategoryScale, 
     LinearScale, 
-    scales
 } from 'chart.js'
 
 ChartJS.register(
