@@ -93,8 +93,34 @@ const chartOptions = ref({
     responsive: true,
 });
 
-const supaClient = useSupabaseClient();
+const paramMap = {
+    uv_value: {
+        table: 'uvs12sd',
+        values: ['created_at', 'uv_value']
+    },
+    temperature: {
+        table: 'bme280',
+        values: ['created_at', 'temperature']
+    },
+    humidity: {
+        table: 'bme280',
+        values: ['created_at', 'humidity']
+    },
+    pressure: {
+        table: 'bme280',
+        values: ['created_at', 'pressure']
+    },
+    altitude: {
+        table: 'bme280',
+        values: ['created_at', 'altitude']
+    },
+    luminance: {
+        table: 'temt6000',
+        values: ['created_at', 'luminance']
+    }
+}
 
+const supaClient = useSupabaseClient();
 const dbChannel = supaClient
     .channel('db-changes')
     .on(
@@ -125,7 +151,7 @@ const dbChannel = supaClient
         () => refreshUV()
     );
 
-const queryRealtimeChange = (name, table, values, timeRange, timeUnit) => useAsyncData(
+const queryRealtimeChange = (name, table, values, timeRange=8760, timeUnit='hour') => useAsyncData(
     name,
     async () => {
         // timeRange in minutes
@@ -145,7 +171,6 @@ const queryRealtimeChange = (name, table, values, timeRange, timeUnit) => useAsy
         return data;
     }
 )
-
 const { data: uvData, refresh: refreshUV } = queryRealtimeChange(
     'uv',
     'uvs12sd',
@@ -176,97 +201,121 @@ onUnmounted(() => {
     dbChannel.unsubscribe()
 });
 
-const updateLatestAndChart = (data, latest, chartData, chartId, loaded, param, label) => {
-    // update latest values
-    latest.value = data[data.length - 1][param]
+const updateLatestAndChart = async (data, latest, chartData, chartId, loaded, param, label) => {
+    if (data) {
+        // update latest values
+        latest.value = data[data.length - 1][param]
 
-    // update chart data
-    chartData.value = {
-        labels: data.map((item) => {
-            const date = new Date(item.created_at);
-            if (date.getMinutes() < 10) {
-                return `${date.getHours()}:0${date.getMinutes()}`;
-            }
-            return `${date.getHours()}:${date.getMinutes()}`;
-        }),
-        datasets: [
-            {
-                data: data.map((item) => item[param]),
-                label: label,
-                backgroundColor: '#1DB954',
-                borderColor: '#1DB954',
-            }
-        ]
-    };
+        // update chart data
+        chartData.value = {
+            labels: data.map((item) => {
+                const date = new Date(item.created_at);
+                if (date.getMinutes() < 10) {
+                    return `${date.getHours()}:0${date.getMinutes()}`;
+                }
+                return `${date.getHours()}:${date.getMinutes()}`;
+            }),
+            datasets: [
+                {
+                    data: data.map((item) => item[param]),
+                    label: label,
+                    backgroundColor: '#1DB954',
+                    borderColor: '#1DB954',
+                }
+            ]
+        };
+    } else {
+        const table = paramMap[param]['table'];
+        const values = paramMap[param]['values'];
+        const { data, error } = await supaClient
+            .from(table)
+            .select(values.join(', '))
+            .order('created_at', { ascending: true });
+        latest.value = !error ? data[data.length - 1][param] : 0;
+        chartData.value = {
+            labels: [],
+            datasets: [
+                {
+                    data: [],
+                    label: label,
+                    backgroundColor: '#1DB954',
+                    borderColor: '#1DB954',
+                }
+            ]
+        };
+    }
     chartId.value = param + '-chart';
     loaded.value = true;
-}
+};
 
 watch(uvData, (newValue, oldValue) => {
-    if (newValue) {
-        updateLatestAndChart(
-            newValue,
-            latestUV,
-            uvChartData,
-            uvChartId,
-            uvLoaded,
-            'uv_value',
-            'UV'
-        );
-    }
+    newValue = newValue.length == 0 ? null : newValue;
+    // if (newValue) {
+    updateLatestAndChart(
+        newValue,
+        latestUV,
+        uvChartData,
+        uvChartId,
+        uvLoaded,
+        'uv_value',
+        'UV'
+    );
+    // }
 })
 watch(bmeData, (newValue, oldValue) => {
-    if (newValue) {
-        updateLatestAndChart(
-            newValue,
-            latestTemperature,
-            tempChartData,
-            tempChartId,
-            tempLoaded,
-            'temperature',
-            'Temperature'
-        );
-        updateLatestAndChart(
-            newValue,
-            latestHumidity,
-            humChartData,
-            humChartId,
-            humLoaded,
-            'humidity',
-            'Humidity'
-        );
-        updateLatestAndChart(
-            newValue,
-            latestPressure,
-            pressureChartData,
-            pressureChartId,
-            pressureLoaded,
-            'pressure',
-            'Pressure'
-        );
-        updateLatestAndChart(
-            newValue,
-            latestAltitude,
-            altitudeChartData,
-            altitudeChartId,
-            altitudeLoaded,
-            'altitude',
-            'Altitude'
-        );
-    }
+    newValue = newValue.length == 0 ? null : newValue;
+    // if (newValue) {
+    updateLatestAndChart(
+        newValue,
+        latestTemperature,
+        tempChartData,
+        tempChartId,
+        tempLoaded,
+        'temperature',
+        'Temperature'
+    );
+    updateLatestAndChart(
+        newValue,
+        latestHumidity,
+        humChartData,
+        humChartId,
+        humLoaded,
+        'humidity',
+        'Humidity'
+    );
+    updateLatestAndChart(
+        newValue,
+        latestPressure,
+        pressureChartData,
+        pressureChartId,
+        pressureLoaded,
+        'pressure',
+        'Pressure'
+    );
+    updateLatestAndChart(
+        newValue,
+        latestAltitude,
+        altitudeChartData,
+        altitudeChartId,
+        altitudeLoaded,
+        'altitude',
+        'Altitude'
+    );
+    // }
 })
 watch(temtData, (newValue, oldValue) => {
-    if (newValue) {
-        updateLatestAndChart(
-            newValue,
-            latestLuminance,
-            lumChartData,
-            lumChartId,
-            lumLoaded,
-            'luminance',
-            'Luminance'
-        );
-    }
+    newValue = newValue.length == 0 ? null : newValue;
+    // if (newValue) {
+    updateLatestAndChart(
+        newValue,
+        latestLuminance,
+        lumChartData,
+        lumChartId,
+        lumLoaded,
+        'luminance',
+        'Luminance'
+    );
+    // }
 })
 
 const togglePersonState = () => {
@@ -302,7 +351,6 @@ const togglePersonState = () => {
         }
     };
     isDark.value = personState.value === 'Resting . . .';
-    console.log(isDark.value);
     setColourTheme(personState.value === 'Resting . . .' ? 'dark' : 'light');
 }
 const setColourTheme = (newTheme) => {
