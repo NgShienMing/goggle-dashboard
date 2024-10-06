@@ -1,5 +1,5 @@
 <template>
-    <div class="dark:bg-black">
+    <div :class="{ 'dark-active': isDark, 'dark-inactive': !isDark }">
         <div class="d-flex align-items-center justify-content-center" style="min-height: 100vh;">
             <div class="container">
                 <div :class="{ 'dark-active': isDark, 'dark-inactive': !isDark }" class="sticky-top">
@@ -327,12 +327,18 @@ const togglePersonState = () => {
             x: {
                 grid: {
                     color: '#808080',
-                }
+                },
+                border: {
+                    color: '#808080',
+                },
             },
             y: {
                 grid: {
                     color: '#808080',
-                }
+                },
+                border: {
+                    color: '#808080',
+                },
             }
         }
     } : {
@@ -341,12 +347,18 @@ const togglePersonState = () => {
             x: {
                 grid: {
                     color: '#CECECE',
+                },
+                border: {
+                    color: '#CECECE',
                 }
             },
             y: {
                 grid: {
                     color: '#CECECE',
-                }
+                },
+                border: {
+                    color: '#CECECE',
+                },
             }
         }
     };
