@@ -73,6 +73,8 @@
 </template>
 
 <script setup>
+import Swal from 'sweetalert2';
+
 const title = 'A. I. M. Z. Goggles';
 const personState = ref('Working . . .');
 const btnColor = ref('#1b1b1b');
@@ -108,6 +110,9 @@ const lumLoaded = ref(false);
 const altitudeChartData = ref({});
 const altitudeChartId = ref('');
 const altitudeLoaded = ref(false);
+
+const uvThreshold = ref(10);
+const uvExposeTime = ref(0);
 
 const chartOptions = ref({
     responsive: true, 
@@ -331,6 +336,25 @@ watch(temtData, (newValue, oldValue) => {
         'Luminance'
     );
     // }
+})
+watch(latestUV, (newValue, oldValue) => {
+    if (newValue > uvThreshold.value) {
+        uvExposeTime.value += 1;
+    }
+    else if (newValue <= uvThreshold.value) {
+        uvExposeTime.value -= 1;
+    }
+    if (uvExposeTime.value < 0) {
+        uvExposeTime.value = 0;
+    }
+    if (uvExposeTime.value > 10) {
+        Swal.fire({
+            title: 'Warning!',
+            text: 'Prolonged high UV exposure!',
+            icon: 'warning',
+            confirmButtonText: 'Got it'
+        });
+    }
 })
 
 const togglePersonState = () => {
